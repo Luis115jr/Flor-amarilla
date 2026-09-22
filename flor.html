@@ -5,51 +5,251 @@
 <title>Para ti 💛</title>
 
 <style>
+*{
+  box-sizing:border-box;
+}
+
 body{
   margin:0;
-  background:black;
+  background:
+    radial-gradient(circle at center, #111 0%, #050505 55%, #000 100%);
   overflow:hidden;
-  font-family:Arial;
+  font-family:Arial, sans-serif;
   color:white;
   text-align:center;
 }
 
+/* =========================
+   PANTALLA INICIAL
+========================= */
+
 #inicio{
   position:absolute;
-  top:40%;
+  top:35%;
   width:100%;
+  z-index:10;
+  animation: aparecer 1.5s ease;
+}
+
+#inicio h2{
+  text-shadow:
+    0 0 5px #110404,
+    0 0 15px #ffd900,
+    0 0 30px #ffae00;
 }
 
 button{
-  padding:10px 20px;
+  padding:12px 25px;
   margin:10px;
-  font-size:16px;
+  font-size:17px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   cursor:pointer;
+  transition:0.3s;
+  box-shadow:0 0 10px rgba(255,255,255,0.3);
 }
 
-#si{ background:green; color:white; }
-#no{ background:red; color:white; }
+button:hover{
+  transform:scale(1.1);
+}
+
+#si{
+  background:green;
+  color:white;
+  box-shadow:0 0 15px #00ff55;
+}
+
+#no{
+  background:red;
+  color:white;
+  position:relative;
+  box-shadow:0 0 15px red;
+}
+
+#respuesta{
+  font-size:18px;
+  min-height:25px;
+  color:#ffd700;
+}
+
+/* =========================
+   CANVAS
+========================= */
 
 canvas{
   display:none;
+  position:absolute;
+  top:0;
+  left:0;
+}
+
+/* =========================
+   ANIMACIÓN INICIAL
+========================= */
+
+@keyframes aparecer{
+  from{
+    opacity:0;
+    transform:translateY(30px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* =========================
+   MENSAJE FINAL
+========================= */
+
+#mensajeFinal{
+  position:absolute;
+  left:50%;
+  top:8%;
+  transform:translateX(-50%);
+  width:90%;
+  z-index:5;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 2s ease;
+}
+
+#mensajeFinal.visible{
+  opacity:1;
+}
+
+#tituloFinal{
+  font-size:28px;
+  color:#0c0b03;
+
+  text-shadow:
+    0 0 5px #130101,
+    0 0 10px #ffd700,
+    0 0 20px #ffae00,
+    0 0 40px #ff8c00;
+}
+
+#textoEscritura{
+  font-size:20px;
+  line-height:1.6;
+  color:rgb(32, 8, 8);
+
+  text-shadow:
+    0 0 5px white,
+    0 0 15px #ffd700;
+}
+
+/* =========================
+   CORAZONES
+========================= */
+
+.corazon{
+  position:absolute;
+  font-size:20px;
+  pointer-events:none;
+  z-index:4;
+  animation:subirCorazon linear forwards;
+}
+
+@keyframes subirCorazon{
+
+  0%{
+    transform:translateY(0) scale(0.5) rotate(0deg);
+    opacity:0;
+  }
+
+  20%{
+    opacity:1;
+  }
+
+  100%{
+    transform:
+      translateY(-500px)
+      translateX(var(--movimiento))
+      scale(1.5)
+      rotate(360deg);
+
+    opacity:0;
+  }
+}
+
+/* =========================
+   ESTRELLAS
+========================= */
+
+.estrella{
+  position:absolute;
+  color:#fff;
+  font-size:10px;
+  pointer-events:none;
+  animation:brillar 2s infinite alternate;
+}
+
+@keyframes brillar{
+
+  from{
+    opacity:0.2;
+    transform:scale(0.5);
+  }
+
+  to{
+    opacity:1;
+    transform:scale(1.8);
+  }
 }
 </style>
 </head>
 
 <body>
 
+<!-- =========================
+     PANTALLA INICIAL
+========================= -->
+
 <div id="inicio">
-  <h2>¿Quieres ver algo bonito? 💛</h2>
+
+  <h2>
+    ¡¡¡Este es mi regalo de flores amarillas!!! 💛
+  </h2>
+
+  <h2>
+    ¿Quieres ver??
+  </h2>
+
   <button id="si">Sí</button>
   <button id="no">No</button>
+
   <p id="respuesta"></p>
+
 </div>
+
+<!-- =========================
+     CANVAS
+========================= -->
 
 <canvas id="canvas"></canvas>
 
+<!-- =========================
+     MENSAJE FINAL
+========================= -->
+
+<div id="mensajeFinal">
+
+  <div id="tituloFinal">
+    Para ti, Cereza 💛
+  </div>
+
+  <div id="textoEscritura"></div>
+
+</div>
+
 <script>
+
+/* =====================================================
+   ELEMENTOS
+===================================================== */
+
 const btnSi = document.getElementById("si");
 const btnNo = document.getElementById("no");
 const inicio = document.getElementById("inicio");
@@ -58,11 +258,24 @@ const respuesta = document.getElementById("respuesta");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
+const mensajeFinal = document.getElementById("mensajeFinal");
+const textoEscritura = document.getElementById("textoEscritura");
+
+
+/* =====================================================
+   CANVAS
+===================================================== */
+
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let cx = canvas.width / 2;
 let cy = canvas.height / 2;
+
+
+/* =====================================================
+   CONFIGURACIÓN DE LA FLOR
+===================================================== */
 
 let petalos = 28;
 let capas = 18;
@@ -73,101 +286,682 @@ let total = petalos * capas;
 let duracion = 8000;
 let delay = duracion / total;
 
-// BOTÓN SI
+
+/* =====================================================
+   BOTÓN SÍ
+===================================================== */
+
 btnSi.onclick = ()=>{
+
   inicio.style.display = "none";
+
   canvas.style.display = "block";
+
+  crearEstrellas();
+
   animar();
 };
 
-// BOTÓN NO 😏
-btnNo.onclick = ()=>{
-  respuesta.innerText = "Igual lo verás 😏💛";
-};
 
-// 🌼 DIBUJO PETALO
+/* =====================================================
+   BOTÓN NO
+   AHORA HUYE 😂
+===================================================== */
+
+btnNo.addEventListener("mouseenter", escapar);
+
+btnNo.addEventListener("touchstart", escapar);
+
+
+function escapar(){
+
+  const margen = 30;
+
+  const maxX =
+    window.innerWidth -
+    btnNo.offsetWidth -
+    margen;
+
+  const maxY =
+    window.innerHeight -
+    btnNo.offsetHeight -
+    margen;
+
+  const x =
+    Math.random() * maxX;
+
+  const y =
+    Math.random() * maxY;
+
+  btnNo.style.position = "fixed";
+
+  btnNo.style.left = x + "px";
+
+  btnNo.style.top = y + "px";
+
+  respuesta.innerText =
+    "Jajaja, ese botón no te va a dejar escapar 😏💛";
+}
+
+
+/* =====================================================
+   DIBUJAR PÉTALO
+===================================================== */
+
 function dibujarPetalo(p, c){
-  let ang = (Math.PI * 2 / petalos) * p;
-  let largo = 180 - c * 6;
-  let ancho = 60 - c * 2;
 
-  let x1 = cx + Math.cos(ang) * 20;
-  let y1 = cy + Math.sin(ang) * 20;
+  let ang =
+    (Math.PI * 2 / petalos) * p;
 
-  let x2 = cx + Math.cos(ang) * largo;
-  let y2 = cy + Math.sin(ang) * largo;
+  let largo =
+    180 - c * 6;
 
-  let ctrl1x = cx + Math.cos(ang - 0.5) * ancho;
-  let ctrl1y = cy + Math.sin(ang - 0.5) * ancho;
+  let ancho =
+    60 - c * 2;
 
-  let ctrl2x = cx + Math.cos(ang + 0.5) * ancho;
-  let ctrl2y = cy + Math.sin(ang + 0.5) * ancho;
 
-  ctx.strokeStyle = "gold";
-  ctx.lineWidth = 1;
+  let x1 =
+    cx + Math.cos(ang) * 20;
 
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
+  let y1 =
+    cy + Math.sin(ang) * 20;
 
-  ctx.quadraticCurveTo(ctrl1x, ctrl1y, x2, y2);
-  ctx.quadraticCurveTo(ctrl2x, ctrl2y, x1, y1);
 
-  ctx.stroke();
-}
+  let x2 =
+    cx + Math.cos(ang) * largo;
 
-// 🌼 ANIMACIÓN
-function animar(){
-  if(paso < total){
-    let p = Math.floor(paso / capas);
-    let c = paso % capas;
+  let y2 =
+    cy + Math.sin(ang) * largo;
 
-    dibujarPetalo(p, c);
 
-    paso++;
-    setTimeout(animar, delay);
-  } else {
-    dibujarCentro();
-    dibujarTallo();
-  }
-}
+  let ctrl1x =
+    cx + Math.cos(ang - 0.5) * ancho;
 
-// 🌟 CENTRO + MENSAJE
-function dibujarCentro(){
-  let grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 70);
-  grad.addColorStop(0, "#FFD700");
-  grad.addColorStop(1, "#FF8C00");
+  let ctrl1y =
+    cy + Math.sin(ang - 0.5) * ancho;
 
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 70, 0, Math.PI * 2);
-  ctx.fill();
 
-  // 💛 TEXTO CENTRADO
-  ctx.fillStyle = "white";
-  ctx.font = "22px Arial";
-  ctx.textAlign = "center";
+  let ctrl2x =
+    cx + Math.cos(ang + 0.5) * ancho;
 
-  ctx.fillText("Para ti Cereza 💛", cx, 60);
-  ctx.fillText("Eres muy especial para mí,", cx, 90);
-  ctx.fillText("aunque peleemos muchote,", cx, 120);
-  ctx.fillText("igual te quiero un montón 💛", cx, 150);
-}
+  let ctrl2y =
+    cy + Math.sin(ang + 0.5) * ancho;
 
-// 🌱 TALLO
-function dibujarTallo(){
-  ctx.strokeStyle = "#00ff88";
-  ctx.lineWidth = 5;
+
+  /* BRILLO DEL PÉTALO */
+
+  ctx.shadowBlur = 12;
+
+  ctx.shadowColor = "#FFD700";
+
+  ctx.strokeStyle = "#FFD700";
+
+  ctx.lineWidth = 1.5;
+
 
   ctx.beginPath();
-  ctx.moveTo(cx, cy + 70);
+
+  ctx.moveTo(x1,y1);
 
   ctx.quadraticCurveTo(
-    cx + 30, cy + 200,
-    cx - 10, canvas.height - 50
+    ctrl1x,
+    ctrl1y,
+    x2,
+    y2
+  );
+
+  ctx.quadraticCurveTo(
+    ctrl2x,
+    ctrl2y,
+    x1,
+    y1
   );
 
   ctx.stroke();
+
+
+  ctx.shadowBlur = 0;
 }
+
+
+/* =====================================================
+   ANIMACIÓN DE LA FLOR
+===================================================== */
+
+function animar(){
+
+  if(paso < total){
+
+    let p =
+      Math.floor(paso / capas);
+
+    let c =
+      paso % capas;
+
+
+    dibujarPetalo(p,c);
+
+
+    /* BRILLOS ALEATORIOS */
+
+    if(Math.random() > 0.75){
+
+      crearBrillo(
+        cx + (Math.random()-0.5)*350,
+        cy + (Math.random()-0.5)*350
+      );
+
+    }
+
+
+    paso++;
+
+    setTimeout(animar,delay);
+
+  }
+
+  else{
+
+    dibujarCentro();
+
+    dibujarTallo();
+
+    dibujarHojas();
+
+    setTimeout(finalRomantico,1200);
+  }
+}
+
+
+/* =====================================================
+   CENTRO DE LA FLOR
+===================================================== */
+
+function dibujarCentro(){
+
+  let grad =
+    ctx.createRadialGradient(
+      cx,
+      cy,
+      5,
+      cx,
+      cy,
+      75
+    );
+
+
+  grad.addColorStop(
+    0,
+    "#FFF700"
+  );
+
+  grad.addColorStop(
+    0.5,
+    "#FFD700"
+  );
+
+  grad.addColorStop(
+    1,
+    "#FF8C00"
+  );
+
+
+  ctx.shadowBlur = 30;
+
+  ctx.shadowColor = "#FFD700";
+
+  ctx.fillStyle = grad;
+
+
+  ctx.beginPath();
+
+  ctx.arc(
+    cx,
+    cy,
+    70,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+
+
+  ctx.shadowBlur = 0;
+
+
+  /* PEQUEÑOS PUNTOS DEL CENTRO */
+
+  for(let i=0;i<35;i++){
+
+    let ang =
+      Math.random()*Math.PI*2;
+
+    let radio =
+      Math.random()*55;
+
+    let x =
+      cx + Math.cos(ang)*radio;
+
+    let y =
+      cy + Math.sin(ang)*radio;
+
+
+    ctx.fillStyle = "#8B4500";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      x,
+      y,
+      2,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+  }
+}
+
+
+/* =====================================================
+   TALLO
+===================================================== */
+
+function dibujarTallo(){
+
+  ctx.strokeStyle = "#00ff88";
+
+  ctx.lineWidth = 6;
+
+  ctx.shadowBlur = 10;
+
+  ctx.shadowColor = "#00ff88";
+
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    cx,
+    cy + 70
+  );
+
+
+  ctx.quadraticCurveTo(
+    cx + 30,
+    cy + 200,
+    cx - 10,
+    canvas.height - 50
+  );
+
+
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+}
+
+
+/* =====================================================
+   HOJAS
+===================================================== */
+
+function dibujarHojas(){
+
+  dibujarHoja(
+    cx + 5,
+    cy + 210,
+    -0.6
+  );
+
+
+  dibujarHoja(
+    cx - 5,
+    cy + 300,
+    0.6
+  );
+
+
+  dibujarHoja(
+    cx - 8,
+    cy + 390,
+    -0.5
+  );
+}
+
+
+function dibujarHoja(x,y,angulo){
+
+  ctx.save();
+
+  ctx.translate(x,y);
+
+  ctx.rotate(angulo);
+
+
+  ctx.fillStyle = "#19c463";
+
+  ctx.shadowBlur = 12;
+
+  ctx.shadowColor = "#00ff88";
+
+
+  ctx.beginPath();
+
+  ctx.moveTo(0,0);
+
+  ctx.quadraticCurveTo(
+    45,
+    -35,
+    75,
+    0
+  );
+
+  ctx.quadraticCurveTo(
+    40,
+    30,
+    0,
+    0
+  );
+
+
+  ctx.fill();
+
+
+  /* NERVADURA */
+
+  ctx.strokeStyle = "#8affb5";
+
+  ctx.lineWidth = 1;
+
+
+  ctx.beginPath();
+
+  ctx.moveTo(0,0);
+
+  ctx.lineTo(65,0);
+
+  ctx.stroke();
+
+
+  ctx.restore();
+
+  ctx.shadowBlur = 0;
+}
+
+
+/* =====================================================
+   BRILLOS
+===================================================== */
+
+function crearBrillo(x,y){
+
+  const brillo =
+    document.createElement("div");
+
+
+  brillo.className =
+    "estrella";
+
+  brillo.innerHTML =
+    "✦";
+
+
+  brillo.style.left =
+    x + "px";
+
+  brillo.style.top =
+    y + "px";
+
+
+  brillo.style.color =
+    "#FFD700";
+
+
+  document.body.appendChild(brillo);
+
+
+  setTimeout(()=>{
+    brillo.remove();
+  },2000);
+}
+
+
+/* =====================================================
+   ESTRELLAS DEL FONDO
+===================================================== */
+
+function crearEstrellas(){
+
+  for(let i=0;i<70;i++){
+
+    const estrella =
+      document.createElement("div");
+
+
+    estrella.className =
+      "estrella";
+
+
+    estrella.innerHTML =
+      Math.random()>0.5
+      ? "✦"
+      : "·";
+
+
+    estrella.style.left =
+      Math.random()*100 + "%";
+
+
+    estrella.style.top =
+      Math.random()*100 + "%";
+
+
+    estrella.style.animationDelay =
+      Math.random()*2 + "s";
+
+
+    estrella.style.fontSize =
+      (Math.random()*8+5)+"px";
+
+
+    document.body.appendChild(estrella);
+  }
+}
+
+
+/* =====================================================
+   CORAZONES
+===================================================== */
+
+function crearCorazon(){
+
+  const corazon =
+    document.createElement("div");
+
+
+  corazon.className =
+    "corazon";
+
+
+  corazon.innerHTML =
+    Math.random()>0.5
+    ? "💛"
+    : "♡";
+
+
+  corazon.style.left =
+    (cx + (Math.random()-0.5)*250) + "px";
+
+
+  corazon.style.top =
+    (cy + 50) + "px";
+
+
+  corazon.style.setProperty(
+    "--movimiento",
+    ((Math.random()-0.5)*250) + "px"
+  );
+
+
+  corazon.style.animationDuration =
+    (3+Math.random()*3)+"s";
+
+
+  document.body.appendChild(corazon);
+
+
+  setTimeout(()=>{
+    corazon.remove();
+  },6000);
+}
+
+
+/* =====================================================
+   MUCHOS CORAZONES
+===================================================== */
+
+function lanzarCorazones(){
+
+  let cantidad = 0;
+
+
+  const intervalo =
+    setInterval(()=>{
+
+      crearCorazon();
+
+      cantidad++;
+
+
+      if(cantidad > 25){
+
+        clearInterval(intervalo);
+
+      }
+
+    },180);
+}
+
+
+/* =====================================================
+   EFECTO DE ESCRITURA
+===================================================== */
+
+function escribirTexto(){
+
+  const texto =
+    "Eres muy especial para mí... 💛\n\n" +
+    "Aunque peleemos muchote,\n" +
+    "aunque a veces nos hagamos enojar,\n" +
+    "igual te quiero un montón. 🥹💛\n\n" +
+    "Y por eso quería regalarte\n" +
+    "estas flores amarillas. 🌻\n\n" +
+    "Espero que siempre recuerdes\n" +
+    "que hay alguien que piensa en ti\n" +
+    "con muchísimo cariño. 💛";
+
+
+  let indice = 0;
+
+
+  textoEscritura.innerHTML = "";
+
+
+  const intervalo =
+    setInterval(()=>{
+
+      if(indice < texto.length){
+
+        let caracter =
+          texto.charAt(indice);
+
+
+        if(caracter === "\n"){
+
+          textoEscritura.innerHTML +=
+            "<br>";
+
+        }
+
+        else{
+
+          textoEscritura.innerHTML +=
+            caracter;
+        }
+
+
+        indice++;
+
+      }
+
+      else{
+
+        clearInterval(intervalo);
+
+        setInterval(
+          crearCorazon,
+          700
+        );
+      }
+
+    },45);
+}
+
+
+/* =====================================================
+   FINAL ROMÁNTICO
+===================================================== */
+
+function finalRomantico(){
+
+  mensajeFinal.classList.add(
+    "visible"
+  );
+
+
+  escribirTexto();
+
+  lanzarCorazones();
+
+
+  /* BRILLOS EXTRA */
+
+  for(let i=0;i<25;i++){
+
+    setTimeout(()=>{
+
+      crearBrillo(
+        cx + (Math.random()-0.5)*500,
+        cy + (Math.random()-0.5)*500
+      );
+
+    },i*100);
+  }
+}
+
+
+/* =====================================================
+   ADAPTACIÓN A LA PANTALLA
+===================================================== */
+
+window.addEventListener(
+  "resize",
+  ()=>{
+
+    canvas.width =
+      window.innerWidth;
+
+    canvas.height =
+      window.innerHeight;
+
+
+    cx =
+      canvas.width / 2;
+
+    cy =
+      canvas.height / 2;
+  }
+);
+
 </script>
 
 </body>
